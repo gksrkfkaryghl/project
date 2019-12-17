@@ -102,8 +102,8 @@
       }
       
       function onMouseDownArithmetic(value) {
-        console.log(value);
 
+        //'←'나 'C'와 calculate()가 함께 실행될 경우, calBeffer값이 의도와 다르게 변형되므로 아래의 경우에는 calculate 굳이 실행되지 않게 함.
         if((value !== '←')&&(value !== 'C')) {
           currentOperator = value;
           calculate(); 
@@ -116,11 +116,9 @@
             runningNumber = 0;                   
             break;
           case '←':
-            console.log("1: " +calcBuffer);
             backspace();
             break;
           case '=':            
-            console.log(runningNumber);
             value = "";
             calcBuffer = runningNumber.toString();
             break;
@@ -128,6 +126,7 @@
         reRender();
       }
 
+      //backspace 함수 만듬.
       function backspace() {
         calcBuffer = calcBuffer.slice(0, calcBuffer.length-1);
 
@@ -182,7 +181,8 @@
         postOperator = currentOperator;
       }
 
-      // I need a property;         
+      // I need a property; 
+      // postOperator 추가.        
       let runningNumber = 0;      
       let calcBuffer = "0";
       let calcNumber = 0;      
