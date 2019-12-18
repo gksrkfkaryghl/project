@@ -83,7 +83,7 @@
       }
       
       function onMouseDownButton(value) {
-        let isArithmetic = isNaN(parseInt(value));
+        isArithmetic = isNaN(parseInt(value));
         
         if (isArithmetic) {
           onMouseDownArithmetic(value);
@@ -98,14 +98,14 @@
         } else {
           calcBuffer += value;
         }
-        reRender();
+        reRender(value);
       }
       
       function onMouseDownArithmetic(value) {
 
         //'←'나 'C'와 calculate()가 함께 실행될 경우, calBeffer값이 의도와 다르게 변형되므로 아래의 경우에는 calculate 굳이 실행되지 않게 함.
+        currentOperator = value;
         if((value !== '←')&&(value !== 'C')) {
-          currentOperator = value;
           calculate(); 
         }
           
@@ -113,17 +113,20 @@
           case 'C':            
             value = "";
             calcBuffer = "0";
-            runningNumber = 0;                   
+            runningNumber = 0;
+            pastOperator == "";                   
             break;
           case '←':
             backspace();
             break;
-          case '=':            
-            value = "";
-            calcBuffer = runningNumber.toString();
+          case '=':
+            //첫 번째 숫자 입력후 바로 '=' 눌렀을 때 0이 아닌 그 숫자가 결과창에 반영될 수 있게 함.
+            if(pastOperator !== "") {
+              calcBuffer = runningNumber.toString();
+            }
             break;
         }   
-        reRender();
+        reRender(value);
       }
 
       //backspace 함수 만듬.
@@ -133,22 +136,36 @@
         if((calcBuffer === "")||(calcBuffer === "-")){
           calcBuffer = "0";
         }
-        if (postOperator === "=") {
+        if (pastOperator === "=") {
             runningNumber = parseFloat(calcBuffer);
         }
       }
       
-      function reRender(){
+
+      function reRender(value){
+        //'A' + 'B' = 'C' 이후 숫자 'D'를 입력했을 때 이전의 결과값인 'C'를 지우고 'D'가 나오게 함.
+        if((latestValue === "=") && !isArithmetic) {
+          calcBuffer = value;
+          runningNumber = 0;
+        }
+        //'a * b = = =' 와 같이 입력한 경우 a * b * b *b 와 같은 결과가 나오게 함.
+        if((latestValue === "=")&&(value === "=")) {
+          pastOperator = savedOperator;
+          calcNumber = savedCalcNumber;ㄴ
+          calculate ();
+        }
         //소수점 아래 숫자들도 표현하기 위해 parseInt --> parseFloat 로 바꿈.
         calcNumber = parseFloat(calcBuffer);  
-            display.innerText = calcNumber;
-         // 연산자 눌렀을 때 display가 0으로 바뀌지 않고 데이터 보존하게 함.
-         if(calcBuffer === "0") {
-             holdData = runningNumber;
-             display.innerText = holdData;
-         }
+        display.innerText = calcNumber;
+        // 연산자 눌렀을 때 display가 0으로 바뀌지 않고 데이터 보존하게 함.
+        if(calcBuffer === "0") {
+          holdData = runningNumber;
+          display.innerText = holdData;
+        }
+        latestValue = value;
       }
       
+
       function calculate () {
         calcBuffer = "0";
         //runningNumber에 'number1 + operator + number2' 에서 number1에 해당하는 값 할당
@@ -156,9 +173,9 @@
             runningNumber = calcNumber;
         } else {
            //최소 구성단위가 number1 + operator + number2 + 연산자('=' or new operator)임으로
-           //계산이 정상적으로 이루어지기 위해 currentOperator 하나론 무리가 있음. 따라서 postOperator 추가하고, 
+           //계산이 정상적으로 이루어지기 위해 currentOperator 하나론 무리가 있음. 따라서 pastOperator 추가하고, 
            //사실상 calculate은 postOperator를 사용함.
-            switch (postOperator) {
+            switch (pastOperator) {
                 case '+':
                     runningNumber += calcNumber;
                     break;
@@ -167,6 +184,7 @@
                     break;
                 case '÷':
                     /* Zero division Error */
+                    holdRunningNumber = runningNumber;
                     runningNumber /= calcNumber;
                     break;
                 case '-':
@@ -174,21 +192,35 @@
                     break;            
                 }
         }
-        if((postOperator === '÷')&&(calcNumber === 0)) {
+        // 정확히 '0/0'의 경우에만 경고창 띄우도록 함.
+        if((holdRunningNumber === 0)&&(pastOperator === '÷')&&(calcNumber === 0)) {
           alert('Waring: Calculating 0 ÷ 0 is not possible.');
         }
-        //currentOperator를 postOperator에 keep 해둠.
-        postOperator = currentOperator;
+        //currentOperator를 pastOperator에 keep 해둠.
+        if(pastOperator !== "=") {
+          savedOperator = pastOperator;
+          savedCalcNumber = calcNumber;
+        }
+        if((pastOperator !== "")||(currentOperator !== "=")) {
+          pastOperator = currentOperator;
+        }
       }
 
       // I need a property; 
-      // postOperator 추가.  
+      // pastOperator 추가.  
       // holdData 추가.      
-      let runningNumber = 0;      
+      // latestValue 추가.
+      // holdRunningNumber 추가.
+      let isArithmetic;
+      let runningNumber = 0;    
+      let holdRunningNumber;
       let calcBuffer = "0";
-      let calcNumber = 0;      
+      let calcNumber = 0;    
+      let savedCalcNumber;  
       let currentOperator;
-      let postOperator;
+      let pastOperator = "";
+      let savedOperator;
+      let latestValue;
       let holdData = 0;
 
       initialize();
