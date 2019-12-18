@@ -130,26 +130,23 @@
       function backspace() {
         calcBuffer = calcBuffer.slice(0, calcBuffer.length-1);
 
-        if(calcBuffer === ""){
+        if((calcBuffer === "")||(calcBuffer === "-")){
           calcBuffer = "0";
         }
         if (postOperator === "=") {
             runningNumber = parseFloat(calcBuffer);
         }
-        console.log("2 running: " +runningNumber);
-        console.log("2 calcBuffer: " +calcBuffer);
       }
       
       function reRender(){
         //소수점 아래 숫자들도 표현하기 위해 parseInt --> parseFloat 로 바꿈.
         calcNumber = parseFloat(calcBuffer);  
-        display.innerText = calcNumber;
-        // if(calcBuffer === "0") {
-        //     display.innerText = runningNumber;
-        // } else {
-
-        // }
-        console.log("3: " +calcBuffer)
+            display.innerText = calcNumber;
+         // 연산자 눌렀을 때 display가 0으로 바뀌지 않고 데이터 보존하게 함.
+         if(calcBuffer === "0") {
+             holdData = runningNumber;
+             display.innerText = holdData;
+         }
       }
       
       function calculate () {
@@ -177,18 +174,23 @@
                     break;            
                 }
         }
+        if((postOperator === '÷')&&(calcNumber === 0)) {
+          alert('Waring: Calculating 0 ÷ 0 is not possible.');
+        }
         //currentOperator를 postOperator에 keep 해둠.
         postOperator = currentOperator;
       }
 
       // I need a property; 
-      // postOperator 추가.        
+      // postOperator 추가.  
+      // holdData 추가.      
       let runningNumber = 0;      
       let calcBuffer = "0";
       let calcNumber = 0;      
       let currentOperator;
       let postOperator;
-      
+      let holdData = 0;
+
       initialize();
     </script>      
   </body>
